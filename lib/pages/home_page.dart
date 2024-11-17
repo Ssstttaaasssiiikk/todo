@@ -168,7 +168,9 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.blueGrey[100],
         title: const Text('ToDo'),
         centerTitle: true,
       ),
@@ -198,6 +200,8 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
       floatingActionButton: FloatingActionButton(
+        foregroundColor: Colors.white,
+        backgroundColor: Colors.black,
         onPressed: () => _showAddTaskModal(context),
         child: const Icon(Icons.add),
       ),
