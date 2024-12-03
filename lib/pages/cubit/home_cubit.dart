@@ -11,6 +11,7 @@ class HomeCubit extends Cubit<HomeState> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final String? tasksJson = prefs.getString('tasks');
+
       if (tasksJson != null) {
         final List<dynamic> decodedTasks = jsonDecode(tasksJson);
         final tasks = decodedTasks
@@ -29,11 +30,14 @@ class HomeCubit extends Cubit<HomeState> {
   Future<void> addTask(String text, String deadline) async {
     try {
       final updatedTasks = List<Map<String, dynamic>>.from(
-          (state is TaskLoaded) ? (state as TaskLoaded).tasks : []);
+        (state is TaskLoaded) ? (state as TaskLoaded).tasks : [],
+      );
+
       updatedTasks.add({'text': '$text (до $deadline)', 'isCompleted': false});
-      _sortTasks(updatedTasks);
-      await _saveTasks(updatedTasks);
+
       emit(TaskLoaded(updatedTasks));
+
+      await _saveTasks(updatedTasks);
     } catch (e) {
       emit(TaskError('Ошибка при добавлении задачи'));
     }
@@ -71,7 +75,9 @@ class HomeCubit extends Cubit<HomeState> {
 
   Future<void> _saveTasks(List<Map<String, dynamic>> tasks) async {
     final prefs = await SharedPreferences.getInstance();
-    final String tasksJson = jsonEncode(tasks);
-    await prefs.setString('tasks', tasksJson);
+    final String tasksJson =
+        jsonEncode(tasks); 
+    await prefs.setString(
+        'tasks', tasksJson);
   }
 }
