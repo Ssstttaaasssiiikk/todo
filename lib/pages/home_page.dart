@@ -1,70 +1,70 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:todo/components/task_widget.dart';
+import 'package:todo/pages/cubit/home_cubit.dart';
 
-class HomePage extends StatefulWidget {
+class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  final List<Map<String, dynamic>> tasks = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadTasks();
-  }
-
-  Future<void> _loadTasks() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? tasksJson = prefs.getString('tasks');
-    if (tasksJson != null) {
-      final List<dynamic> decodedTasks = jsonDecode(tasksJson);
-      setState(() {
-        tasks.clear();
-        tasks.addAll(
-            decodedTasks.map((task) => Map<String, dynamic>.from(task)));
-        _sortTasks();
-      });
-    }
-  }
-
-  Future<void> _saveTasks() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String tasksJson = jsonEncode(tasks);
-    await prefs.setString('tasks', tasksJson);
-  }
-
-  void _deleteTask(int index) {
-    setState(() {
-      tasks.removeAt(index);
-      _sortTasks();
-      _saveTasks();
-    });
-  }
-
-  void _toggleTask(int index) {
-    setState(() {
-      tasks[index]['isCompleted'] = !tasks[index]['isCompleted'];
-      _sortTasks();
-      _saveTasks();
-    });
-  }
-
-  void _addTask(String text, String deadline) {
-    setState(() {
-      tasks.add({'text': '$text (до $deadline)', 'isCompleted': false});
-      _sortTasks();
-      _saveTasks();
-    });
-  }
-
-  void _sortTasks() {
-    tasks.sort((a, b) => a['isCompleted'] ? 1 : -1);
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => HomeCubit()..loadTasks(), // Загрузка задач при старте
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: Colors.blueGrey[100],
+          title: const Text('ToDo'),
+          centerTitle: true,
+        ),
+        body: BlocBuilder<HomeCubit, HomeState>(
+          builder: (context, state) {
+            if (state is TaskLoading) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (state is TaskError) {
+              return Center(child: Text(state.message));
+            } else if (state is TaskLoaded) {
+              final tasks = state.tasks;
+              return tasks.isEmpty
+                  ? const Center(
+                      child: Text(
+                        'Задач нет',
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    )
+                  : Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
+                      child: ListView.builder(
+                        itemCount: tasks.length,
+                        itemBuilder: (context, index) {
+                          final task = tasks[index];
+                          return TaskWidget(
+                            text: task['text'],
+                            isCompleted: task['isCompleted'],
+                            onDelete: () =>
+                                context.read<HomeCubit>().deleteTask(index),
+                            onToggle: () =>
+                                context.read<HomeCubit>().toggleTask(index),
+                          );
+                        },
+                      ),
+                    );
+            } else {
+              return const Center(child: Text('Неизвестная ошибка'));
+            }
+          },
+        ),
+        floatingActionButton: FloatingActionButton(
+          foregroundColor: Colors.white,
+          backgroundColor: Colors.black,
+          onPressed: () => _showAddTaskModal(context),
+          child: const Icon(Icons.add),
+        ),
+      ),
+    );
   }
 
   void _showAddTaskModal(BuildContext context) {
@@ -152,7 +152,9 @@ class _HomePageState extends State<HomePage> {
                       selectedTime!.hour,
                       selectedTime!.minute,
                     );
-                    _addTask(taskText, deadline.toString());
+                    context
+                        .read<HomeCubit>()
+                        .addTask(taskText, deadline.toString());
                     Navigator.pop(context);
                   }
                 },
@@ -162,49 +164,6 @@ class _HomePageState extends State<HomePage> {
           ),
         );
       },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.blueGrey[100],
-        title: const Text('ToDo'),
-        centerTitle: true,
-      ),
-      body: tasks.isEmpty
-          ? const Center(
-              child: Text(
-                'Задач нет',
-                style: TextStyle(fontSize: 18),
-              ),
-            )
-          : Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 10,
-              ),
-              child: ListView.builder(
-                itemCount: tasks.length,
-                itemBuilder: (context, index) {
-                  final task = tasks[index];
-                  return TaskWidget(
-                    text: task['text'],
-                    isCompleted: task['isCompleted'],
-                    onDelete: () => _deleteTask(index),
-                    onToggle: () => _toggleTask(index),
-                  );
-                },
-              ),
-            ),
-      floatingActionButton: FloatingActionButton(
-        foregroundColor: Colors.white,
-        backgroundColor: Colors.black,
-        onPressed: () => _showAddTaskModal(context),
-        child: const Icon(Icons.add),
-      ),
     );
   }
 }
