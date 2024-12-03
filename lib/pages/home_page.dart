@@ -21,7 +21,6 @@ class HomePage extends StatelessWidget {
         ),
         body: BlocBuilder<HomeCubit, HomeState>(
           builder: (context, state) {
-            print('Текущее состояние: $state');
 
             if (state is TaskLoading) {
               return const Center(child: CircularProgressIndicator());
@@ -29,7 +28,6 @@ class HomePage extends StatelessWidget {
               return Center(child: Text(state.message));
             } else if (state is TaskLoaded) {
               final tasks = state.tasks;
-              print('Задачи для отображения: $tasks');
               return tasks.isEmpty
                   ? const Center(
                       child: Text(

@@ -17,15 +17,11 @@ class CreateTaskPage extends StatelessWidget {
           body: SafeArea(
             child: SingleChildScrollView(
               child: Padding(
-                padding: EdgeInsets.only(
-                  top: 16,
-                  left: 16,
-                  right: 16,
-                  bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16
                 ),
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const Text(
                       'Новая задача',
@@ -93,7 +89,6 @@ class CreateTaskPage extends StatelessWidget {
                           context
                               .read<HomeCubit>()
                               .addTask(taskText, deadline.toString());
-                          context.read<HomeCubit>().loadTasks();
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
