@@ -75,9 +75,7 @@ class HomeCubit extends Cubit<HomeState> {
 
   Future<void> _saveTasks(List<Map<String, dynamic>> tasks) async {
     final prefs = await SharedPreferences.getInstance();
-    final String tasksJson =
-        jsonEncode(tasks); 
-    await prefs.setString(
-        'tasks', tasksJson);
+    final String tasksJson = jsonEncode(tasks);
+    await prefs.setString('tasks', tasksJson);
   }
 }

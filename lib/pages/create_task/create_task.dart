@@ -11,22 +11,20 @@ class CreateTaskPage extends StatelessWidget {
     final TextEditingController taskController = TextEditingController();
     DateTime? selectedDate;
     TimeOfDay? selectedTime;
+
     return BlocBuilder<HomeCubit, HomeState>(
       builder: (BuildContext context, HomeState state) {
         return Scaffold(
           body: SafeArea(
             child: SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const Text(
                       'Новая задача',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
                     TextField(
@@ -59,8 +57,7 @@ class CreateTaskPage extends StatelessWidget {
                         Expanded(
                           child: ElevatedButton(
                             onPressed: () async {
-                              final TimeOfDay? pickedTime =
-                                  await showTimePicker(
+                              final TimeOfDay? pickedTime = await showTimePicker(
                                 context: context,
                                 initialTime: TimeOfDay.now(),
                               );
@@ -73,26 +70,52 @@ class CreateTaskPage extends StatelessWidget {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 10),
                     ElevatedButton(
                       onPressed: () {
                         final String taskText = taskController.text.trim();
-                        if (taskText.isNotEmpty &&
-                            selectedDate != null &&
-                            selectedTime != null) {
-                          final DateTime deadline = DateTime(
-                            selectedDate!.year,
-                            selectedDate!.month,
-                            selectedDate!.day,
-                            selectedTime!.hour,
-                            selectedTime!.minute,
-                          );
-                          context
-                              .read<HomeCubit>()
-                              .addTask(taskText, deadline.toString());
+                        if (taskText.isNotEmpty) {
+                          DateTime? deadline;
+
+                          // Если выбрана только дата
+                          if (selectedDate != null && selectedTime == null) {
+                            deadline = DateTime(
+                              selectedDate!.year,
+                              selectedDate!.month,
+                              selectedDate!.day,
+                            );
+                          }
+                          // Если выбрано только время
+                          else if (selectedDate == null && selectedTime != null) {
+                            final now = DateTime.now();
+                            deadline = DateTime(
+                              now.year,
+                              now.month,
+                              now.day,
+                              selectedTime!.hour,
+                              selectedTime!.minute,
+                            );
+                          }
+                          // Если выбраны и дата, и время
+                          else if (selectedDate != null && selectedTime != null) {
+                            deadline = DateTime(
+                              selectedDate!.year,
+                              selectedDate!.month,
+                              selectedDate!.day,
+                              selectedTime!.hour,
+                              selectedTime!.minute,
+                            );
+                          }
+
+                          context.read<HomeCubit>().addTask(
+                                taskText,
+                                deadline?.toString() ?? "Без срока",
+                              );
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => const HomePage()),
+                              builder: (context) => const HomePage(),
+                            ),
                           );
                         }
                       },
@@ -103,7 +126,8 @@ class CreateTaskPage extends StatelessWidget {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const HomePage()),
+                            builder: (context) => const HomePage(),
+                          ),
                         );
                       },
                       child: const Text('Отменить'),

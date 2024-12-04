@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:todo/components/task_widget.dart';
+import 'package:todo/pages/calendar/calendar_page.dart';
 import 'package:todo/pages/create_task/create_task.dart';
 import 'package:todo/pages/cubit/home_cubit.dart';
 
@@ -17,11 +18,18 @@ class HomePage extends StatelessWidget {
           backgroundColor: Colors.blueGrey[100],
           title: const Text('ToDo'),
           centerTitle: true,
-         
+          leading: IconButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const CalendarPage()),
+                );
+              },
+              icon: const Icon(Icons.calendar_month_outlined)),
         ),
         body: BlocBuilder<HomeCubit, HomeState>(
           builder: (context, state) {
-
             if (state is TaskLoading) {
               return const Center(child: CircularProgressIndicator());
             } else if (state is TaskError) {
